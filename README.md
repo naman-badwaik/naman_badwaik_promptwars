@@ -31,8 +31,9 @@ When facing consequential dilemmas, people habitually decide based on what is to
    - **Alternative Perspectives**: Adversarial lenses (e.g., an objective skeptic, future self in 5 years).
    - **Catalytic Questions**: Socratic probes designed to unlock honest self-examination.
    - **Mind-Shift Triggers**: Concrete signals ("If this changes...") that justify a pivot.
-5. **Interactive Reflection Scratchpad**: Lets users actively challenge their own reasoning under each catalytic probe.
-6. **Portable Decision Dossier**: One-click local Markdown export and clipboard copy without transmitting personal reflections to any server.
+5. **Challenge My Thinking (Second-Level Stress Test)**: A dedicated adversarial audit focusing on the strongest assumption under fire, critical unknown variables, cognitive inversion, and a pre-mortem probe before final commitment.
+6. **Interactive Reflection Scratchpad**: Lets users actively challenge their own reasoning under each catalytic probe.
+7. **Portable Decision Dossier**: One-click local Markdown export and clipboard copy without transmitting personal reflections to any server.
 
 ---
 
@@ -41,10 +42,10 @@ When facing consequential dilemmas, people habitually decide based on what is to
 - **Framework**: [Next.js 14+](https://nextjs.org/) with App Router (Vercel-native serverless architecture, zero persistent server).
 - **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict type safety).
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Midnight-slate aesthetic, custom glass surfaces, 60fps GPU-accelerated micro-interactions).
-- **AI Engine**: [Google Gemini Flash](https://ai.google.dev/) via the official `@google/genai` SDK with strict JSON Schema output enforcement.
+- **AI Engine**: [Google Gemini Flash](https://ai.google.dev/) (`gemini-flash-lite-latest`) via the official `@google/genai` SDK with strict JSON Schema output enforcement and client connection reuse.
 - **Validation**: [Zod](https://zod.dev/) (Comprehensive server-side and client-side boundary defense).
-- **Icons**: [Lucide React](https://lucide.dev/).
-- **Testing**: [Vitest](https://vitest.dev/) (30 automated unit tests for validation, schemas, pipelines, and export generation).
+- **Icons**: [Lucide React](https://lucide.dev/) (Tree-shaken via Next.js package optimization).
+- **Testing**: [Vitest](https://vitest.dev/) (34 automated unit tests for validation, schemas, pipelines, and export generation).
 
 ---
 
@@ -55,33 +56,35 @@ BlindSpotAI/
 ├── app/
 │   ├── api/
 │   │   └── analyze/
-│   │       └── route.ts        # Stateless Vercel serverless function (Gemini + Zod)
+│   │       └── route.ts        # Stateless Vercel serverless function (Gemini + Zod + 25s timeout)
 │   ├── globals.css             # Dark theme tokens, keyframes & reduced-motion rules
 │   ├── layout.tsx              # Root HTML shell & SEO metadata
 │   └── page.tsx                # Main client orchestrator & state manager
 ├── components/
 │   ├── Navbar.tsx              # Minimal brand header with live cognitive status indicator
-│   ├── HeroSection.tsx         # Problem framing, value proposition & smooth scroll CTA
-│   ├── PresetScenarios.tsx      # 3 realistic starter dilemmas (Career, College, Purchase)
+│   ├── HeroSection.tsx         # Memoized problem framing, value proposition & smooth scroll CTA
+│   ├── ThinkingField.tsx       # Memoized cognitive vector & ambient radiance field
+│   ├── PresetScenarios.tsx      # Memoized 3 realistic starter dilemmas (Career, College, Purchase)
 │   ├── DecisionForm.tsx        # 4-field structured dilemma intake canvas with counters
 │   ├── LoadingState.tsx        # Rotating cognitive thinking state with accessible status
 │   ├── ReversibilityBanner.tsx # Type 1 vs Type 2 Door visual badge & strategic rationale
 │   ├── InsightCard.tsx         # Reusable card with focus states & .card-hover-lift
+│   ├── ChallengeThinking.tsx   # Differentiating second-level stress-test & pre-mortem workbench
 │   ├── ReflectionScratchpad.tsx# Interactive Socratic reflection canvas & completion tracker
 │   ├── DecisionDossier.tsx     # Client-side Markdown export and clipboard copy module
-│   ├── AnalysisDashboard.tsx   # 7-step guided journey & cognitive metrics summary
+│   ├── AnalysisDashboard.tsx   # 8-step guided journey & cognitive metrics summary
 │   └── ErrorState.tsx          # Resilient error notification with 1-click retry
 ├── lib/
-│   ├── gemini.ts               # Gemini client, Socratic system prompt & JSON schema
+│   ├── gemini.ts               # Gemini client singleton, Socratic prompt & JSON schema
 │   ├── schemas.ts              # Zod input/output validation contracts & shared types
 │   ├── sampleData.ts           # Rich starter scenarios for instant judging demos
 │   └── dossier.ts              # Pure deterministic Markdown dossier generator
 ├── tests/
 │   ├── validation.test.ts      # Input boundary, character limit & required field tests
-│   ├── analysis-schema.test.ts # AI response schema, enum safety & malformed payload tests
+│   ├── analysis-schema.test.ts # AI response schema, enum safety & ChallengeMyThinking tests
 │   ├── gemini-pipeline.test.ts # Prompt construction, code fence stripping & model fallback
 │   ├── presets.test.ts         # Schema compliance tests for all starter scenarios
-│   └── dossier.test.ts         # Markdown generation, reflection parsing & resilience tests
+│   └── dossier.test.ts         # Markdown generation, pre-mortem reflection & resilience tests
 ├── .env.example                # Safe environment variable template
 ├── .gitignore                  # Strict exclusion of secrets, build artifacts & dependencies
 ├── package.json                # Lean dependency tree (< 0.25 MB total repository size)
@@ -94,10 +97,11 @@ BlindSpotAI/
 ## 🔒 Security & Privacy
 
 - **Server-Side API Key Confinement**: `GEMINI_API_KEY` is loaded exclusively inside the serverless API route (`app/api/analyze/route.ts`). Never exposed to client bundles or browser consoles.
-- **Configurable Model**: `GEMINI_MODEL` defaults to `gemini-2.5-flash` but can be swapped dynamically via environment variables without code modification.
-- **Zero Reflection Persistence**: User reflections written in the scratchpad reside strictly in browser React state. They are never transmitted to Google, logged to the server, or written to a database.
+- **Configurable Model**: `GEMINI_MODEL` defaults to `gemini-flash-lite-latest` and can be swapped dynamically via environment variables without code modification.
+- **Zero Reflection Persistence**: User reflections and pre-mortem answers reside strictly in browser React state. They are never transmitted to Google, logged to the server, or written to a database.
 - **Safe Rendering**: All AI outputs and user inputs are rendered through standard React JSX escaping, preventing XSS injection.
 - **Defensive Boundary Limits**: Zod validates input lengths on both client and server (Decision: 600 chars, Current Thinking: 600 chars, Context: 1000 chars, Constraints: 600 chars).
+- **Hardened Serverless Headers**: `Cache-Control: "no-store, max-age=0"` and `poweredByHeader: false` prevent information leakage.
 
 ---
 
@@ -123,7 +127,7 @@ cp .env.example .env.local
 Edit `.env.local`:
 ```env
 GEMINI_API_KEY=your_actual_gemini_api_key_here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-flash-lite-latest
 ```
 
 ### 3. Run Development Server
@@ -136,7 +140,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🧪 Running Automated Tests
 
-Run the complete Vitest test suite (30 unit tests, 100% pass rate):
+Run the complete Vitest test suite (34 unit tests, 100% pass rate):
 ```bash
 npm test
 ```

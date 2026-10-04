@@ -98,6 +98,23 @@ export const CatalyticQuestionItemSchema = z.object({
   whyThisMatters: z.string().min(1, "Importance explanation is required"),
 });
 
+export const ChallengeMyThinkingSchema = z.object({
+  strongestAssumption: z
+    .string()
+    .min(1, "Strongest assumption is required"),
+  biggestUncertainty: z
+    .string()
+    .min(1, "Biggest uncertainty is required"),
+  alternativeInterpretation: z
+    .string()
+    .min(1, "Alternative interpretation is required"),
+  preMortemQuestion: z
+    .string()
+    .min(1, "Pre-mortem question is required"),
+});
+
+export type ChallengeMyThinking = z.infer<typeof ChallengeMyThinkingSchema>;
+
 export const BlindSpotAnalysisSchema = z.object({
   reversibility: ReversibilitySchema,
   whatYouMayBeMissing: z.array(WhatYouMayBeMissingItemSchema).min(1),
@@ -106,6 +123,7 @@ export const BlindSpotAnalysisSchema = z.object({
   alternativePerspectives: z.array(AlternativePerspectiveItemSchema).min(1),
   catalyticQuestions: z.array(CatalyticQuestionItemSchema).min(1),
   mindShiftTriggers: z.array(z.string().min(1)).min(1),
+  challengeMyThinking: ChallengeMyThinkingSchema.optional(),
 });
 
 export type BlindSpotAnalysis = z.infer<typeof BlindSpotAnalysisSchema>;

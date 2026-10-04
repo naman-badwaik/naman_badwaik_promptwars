@@ -12,6 +12,10 @@ export function getGeminiModel(): string {
   return process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
 }
 
+// Module-level cached client for warm serverless runtime reuse
+let cachedAiClient: GoogleGenAI | null = null;
+let cachedApiKey: string | null = null;
+
 export function getGeminiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
@@ -19,7 +23,11 @@ export function getGeminiClient(): GoogleGenAI {
       "GEMINI_API_KEY is not configured on the server. Please set GEMINI_API_KEY in your environment variables."
     );
   }
-  return new GoogleGenAI({ apiKey });
+  if (!cachedAiClient || cachedApiKey !== apiKey) {
+    cachedAiClient = new GoogleGenAI({ apiKey });
+    cachedApiKey = apiKey;
+  }
+  return cachedAiClient;
 }
 
 export const SYSTEM_INSTRUCTION = `You are an epistemic auditor and Socratic thinking companion for the BlindSpot AI platform.
@@ -64,10 +72,10 @@ ${input.currentThinking}
 ${input.context}
 
 ${input.constraints ? `[CONSTRAINTS, PRIORITIES & CONCERNS]:\n${input.constraints}\n` : ""}
-
 Conduct a deep, rigorous examination of this reasoning.
 Classify reversibility (Type 1: One-way door vs. Type 2: Two-way door).
 Identify blind spots, test core assumptions, pinpoint non-obvious risks, construct counter-perspectives, pose catalytic reflection questions, and define mind-shift triggers.
+Synthesize a focused "Challenge My Thinking" stress-test with the strongest assumption under fire, the single biggest uncertainty, an alternative interpretation, and a decisive pre-mortem question.
 Respond strictly in JSON according to the schema.`;
 }
 
@@ -159,6 +167,33 @@ export const BLIND_SPOT_JSON_SCHEMA = {
       type: Type.ARRAY,
       items: { type: Type.STRING },
     },
+    challengeMyThinking: {
+      type: Type.OBJECT,
+      properties: {
+        strongestAssumption: {
+          type: Type.STRING,
+          description: "The single most critical or vulnerable premise the user is relying on.",
+        },
+        biggestUncertainty: {
+          type: Type.STRING,
+          description: "The highest-impact unknown or unpredictable variable that could alter the outcome.",
+        },
+        alternativeInterpretation: {
+          type: Type.STRING,
+          description: "A compelling counter-perspective or cognitive inversion of their preferred direction.",
+        },
+        preMortemQuestion: {
+          type: Type.STRING,
+          description: "A decisive pre-mortem question to test conviction before finalizing the choice.",
+        },
+      },
+      required: [
+        "strongestAssumption",
+        "biggestUncertainty",
+        "alternativeInterpretation",
+        "preMortemQuestion",
+      ],
+    },
   },
   required: [
     "reversibility",
@@ -168,6 +203,7 @@ export const BLIND_SPOT_JSON_SCHEMA = {
     "alternativePerspectives",
     "catalyticQuestions",
     "mindShiftTriggers",
+    "challengeMyThinking",
   ],
 };
 
@@ -185,9 +221,10 @@ export function cleanJsonString(raw: string): string {
 /**
  * Executes the Gemini blind spot analysis pipeline:
  * 1. Build prompt
- * 2. Invoke Gemini with structured output config
- * 3. Extract and sanitize JSON
- * 4. Validate output with Zod
+ * 2. Invoke Gemini with structured output config (temperature: 0.2, bounded max tokens)
+ * 3. Enforce 25-second timeout to prevent serverless hanging
+ * 4. Extract and sanitize JSON
+ * 5. Validate output strictly with Zod schema
  */
 export async function runGeminiBlindSpotAnalysis(
   input: DecisionInput
@@ -196,15 +233,29 @@ export async function runGeminiBlindSpotAnalysis(
   const model = getGeminiModel();
   const prompt = buildAnalysisPrompt(input);
 
-  const response = await ai.models.generateContent({
+  const timeoutMs = 25000;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    const timer = setTimeout(() => {
+      reject(
+        new Error("Gemini analysis timed out after 25 seconds. Please try again.")
+      );
+    }, timeoutMs);
+    if (typeof timer.unref === "function") timer.unref();
+  });
+
+  const generatePromise = ai.models.generateContent({
     model,
     contents: prompt,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
       responseSchema: BLIND_SPOT_JSON_SCHEMA,
+      temperature: 0.2,
+      maxOutputTokens: 2500,
     },
   });
+
+  const response = await Promise.race([generatePromise, timeoutPromise]);
 
   const responseText = response.text;
   if (!responseText || responseText.trim().length === 0) {
@@ -220,6 +271,41 @@ export async function runGeminiBlindSpotAnalysis(
     const errorMsg =
       parseError instanceof Error ? parseError.message : "JSON syntax error";
     throw new Error(`Failed to parse Gemini output as JSON: ${errorMsg}`);
+  }
+
+  // Deterministic fallback if challengeMyThinking was omitted by a fallback model
+  if (rawJson && typeof rawJson === "object") {
+    const obj = rawJson as Record<string, unknown>;
+    if (
+      !obj.challengeMyThinking &&
+      Array.isArray(obj.assumptionsBeingMade) &&
+      obj.assumptionsBeingMade.length > 0
+    ) {
+      const firstAssumption = obj.assumptionsBeingMade[0] as Record<string, string>;
+      const firstRisk = Array.isArray(obj.risksAndTradeoffs)
+        ? (obj.risksAndTradeoffs[0] as Record<string, string>)
+        : undefined;
+      const firstAlt = Array.isArray(obj.alternativePerspectives)
+        ? (obj.alternativePerspectives[0] as Record<string, string>)
+        : undefined;
+      const firstQ = Array.isArray(obj.catalyticQuestions)
+        ? (obj.catalyticQuestions[0] as Record<string, string>)
+        : undefined;
+
+      obj.challengeMyThinking = {
+        strongestAssumption:
+          firstAssumption?.statedOrImpliedAssumption || "Core unverified premise.",
+        biggestUncertainty:
+          firstRisk?.riskOrHiddenCost ||
+          "Downside unpredictability under shifting constraints.",
+        alternativeInterpretation:
+          firstAlt?.howTheyViewThis ||
+          "Consider the inverse outcome if initial assumptions fail to hold.",
+        preMortemQuestion:
+          firstQ?.question ||
+          "If this path fails within a year, what was the root blind spot?",
+      };
+    }
   }
 
   // Strict Zod schema validation

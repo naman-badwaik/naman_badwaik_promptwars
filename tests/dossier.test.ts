@@ -122,4 +122,45 @@ describe("generateDossierMarkdown Utility", () => {
     expect(md).toContain(specialInput.currentThinking);
     expect(md).toContain("Line 1\n  > Line 2 > quote\n  > `code block`");
   });
+
+  it("7. includes Challenge My Thinking synthesis section when present", () => {
+    const analysisWithChallenge: BlindSpotAnalysis = {
+      ...mockAnalysis,
+      challengeMyThinking: {
+        strongestAssumption: "Autonomy equates to happiness.",
+        biggestUncertainty: "Severe cash flow friction within 6 months.",
+        alternativeInterpretation: "The VP role provides capital and network leverage.",
+        preMortemQuestion: "If you run out of cash by Month 9, what was the blind spot?",
+      },
+    };
+
+    const md = generateDossierMarkdown(mockInput, analysisWithChallenge);
+    expect(md).toContain("CHALLENGE MY THINKING — SECOND-LEVEL STRESS TEST");
+    expect(md).toContain("Strongest Assumption Under Fire");
+    expect(md).toContain("Autonomy equates to happiness.");
+    expect(md).toContain("Pre-Mortem Probe to Answer Before Deciding");
+    expect(md).toContain("If you run out of cash by Month 9");
+  });
+
+  it("8. formats user pre-mortem audit answers correctly in the dossier", () => {
+    const analysisWithChallenge: BlindSpotAnalysis = {
+      ...mockAnalysis,
+      challengeMyThinking: {
+        strongestAssumption: "Autonomy equates to happiness.",
+        biggestUncertainty: "Severe cash flow friction within 6 months.",
+        alternativeInterpretation: "The VP role provides capital and network leverage.",
+        preMortemQuestion: "If you run out of cash by Month 9, what was the blind spot?",
+      },
+    };
+
+    const userPreMortem = "I will mandate 3 paying pilot contracts before handing in my two-week notice.";
+    const md = generateDossierMarkdown(
+      mockInput,
+      analysisWithChallenge,
+      {},
+      { challengeReflection: userPreMortem }
+    );
+    expect(md).toContain("Your Pre-Mortem Audit Answer:");
+    expect(md).toContain(userPreMortem);
+  });
 });

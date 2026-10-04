@@ -14,14 +14,16 @@ import {
   ArrowRight,
   Sparkles,
   Layers,
-  ArrowUpRight,
 } from "lucide-react";
+import { ChallengeThinking } from "./ChallengeThinking";
 
 interface AnalysisDashboardProps {
   input: DecisionInput;
   analysis: BlindSpotAnalysis;
   reflections: Record<number, string>;
+  challengeReflection: string;
   onReflectionChange: (index: number, text: string) => void;
+  onChallengeReflectionChange: (text: string) => void;
   onAnalyzeAnother: () => void;
 }
 
@@ -29,9 +31,25 @@ export function AnalysisDashboard({
   input,
   analysis,
   reflections,
+  challengeReflection,
   onReflectionChange,
+  onChallengeReflectionChange,
   onAnalyzeAnother,
 }: AnalysisDashboardProps) {
+  const effectiveChallenge = analysis.challengeMyThinking || {
+    strongestAssumption:
+      analysis.assumptionsBeingMade[0]?.statedOrImpliedAssumption ||
+      "Core unverified premise.",
+    biggestUncertainty:
+      analysis.risksAndTradeoffs[0]?.riskOrHiddenCost ||
+      "Downside unpredictability under shifting constraints.",
+    alternativeInterpretation:
+      analysis.alternativePerspectives[0]?.howTheyViewThis ||
+      "Consider the inverse outcome if initial assumptions fail to hold.",
+    preMortemQuestion:
+      analysis.catalyticQuestions[0]?.question ||
+      "If this path fails within a year, what was the root blind spot?",
+  };
   return (
     <section
       id="analysis-results"
@@ -362,6 +380,17 @@ export function AnalysisDashboard({
         </div>
 
         {/* ========================================================
+            STEP 08: CHALLENGE MY THINKING (SECOND-LEVEL STRESS TEST)
+            ======================================================== */}
+        <div className="animate-reveal stagger-8">
+          <ChallengeThinking
+            challenge={effectiveChallenge}
+            challengeReflection={challengeReflection}
+            onChallengeReflectionChange={onChallengeReflectionChange}
+          />
+        </div>
+
+        {/* ========================================================
             DECISION DOSSIER EXPORT SECTION
             ======================================================== */}
         <div className="animate-reveal stagger-8">
@@ -369,6 +398,7 @@ export function AnalysisDashboard({
             input={input}
             analysis={analysis}
             reflections={reflections}
+            challengeReflection={challengeReflection}
           />
         </div>
 

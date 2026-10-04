@@ -7,7 +7,7 @@ interface PresetScenariosProps {
   activePresetId?: string;
 }
 
-export function PresetScenarios({
+export const PresetScenarios = React.memo(function PresetScenarios({
   onSelectPreset,
   activePresetId,
 }: PresetScenariosProps) {
@@ -92,4 +92,4 @@ export function PresetScenarios({
       </div>
     </section>
   );
-}
+});

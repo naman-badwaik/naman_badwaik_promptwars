@@ -2,6 +2,7 @@ import { DecisionInput, BlindSpotAnalysis } from "./schemas";
 
 export interface DossierOptions {
   generatedAt?: string;
+  challengeReflection?: string;
 }
 
 /**
@@ -108,6 +109,28 @@ export function generateDossierMarkdown(
     ``,
     ...analysis.mindShiftTriggers.map((trigger, idx) => `${idx + 1}. ${trigger}`)
   );
+
+  // 9. Challenge My Thinking (Second-Level Stress Test)
+  if (analysis.challengeMyThinking) {
+    sections.push(
+      ``,
+      `## 9. CHALLENGE MY THINKING — SECOND-LEVEL STRESS TEST`,
+      `### Strongest Assumption Under Fire`,
+      `"${analysis.challengeMyThinking.strongestAssumption}"`,
+      ``,
+      `### Critical Unknown / Biggest Uncertainty`,
+      analysis.challengeMyThinking.biggestUncertainty,
+      ``,
+      `### Cognitive Inversion / Alternative Interpretation`,
+      analysis.challengeMyThinking.alternativeInterpretation,
+      ``,
+      `### Pre-Mortem Probe to Answer Before Deciding`,
+      `> "${analysis.challengeMyThinking.preMortemQuestion}"`,
+      options.challengeReflection?.trim()
+        ? `\n**Your Pre-Mortem Audit Answer:**\n> ${options.challengeReflection.trim().replace(/\n/g, "\n> ")}\n`
+        : `\n*(Self-audit note: Sit with this question before final commitment)*\n`
+    );
+  }
 
   // Concluding Epistemic Seal
   sections.push(

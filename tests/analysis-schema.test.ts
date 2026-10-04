@@ -123,4 +123,35 @@ describe("BlindSpotAnalysisSchema Validation", () => {
     const result = BlindSpotAnalysisSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
+
+  // Sprint 6: Challenge My Thinking tests
+  it("10. validates a compliant ChallengeMyThinking synthesis structure", () => {
+    const withChallenge = {
+      ...validAnalysis,
+      challengeMyThinking: {
+        strongestAssumption: "Enterprise software sales require 6-9 months.",
+        biggestUncertainty: "Macro enterprise IT budget freezing.",
+        alternativeInterpretation: "The enterprise offer provides runway to build leverage safely.",
+        preMortemQuestion: "If you run out of capital at Month 10, what early sign did you ignore?",
+      },
+    };
+    const result = BlindSpotAnalysisSchema.safeParse(withChallenge);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.challengeMyThinking?.strongestAssumption).toContain("Enterprise software sales");
+      expect(result.data.challengeMyThinking?.preMortemQuestion).toContain("If you run out of capital");
+    }
+  });
+
+  it("11. rejects invalid ChallengeMyThinking with missing required properties", () => {
+    const invalidChallenge = {
+      ...validAnalysis,
+      challengeMyThinking: {
+        strongestAssumption: "Only one field",
+        // missing biggestUncertainty, alternativeInterpretation, preMortemQuestion
+      },
+    };
+    const result = BlindSpotAnalysisSchema.safeParse(invalidChallenge);
+    expect(result.success).toBe(false);
+  });
 });

@@ -7,17 +7,21 @@ interface DecisionDossierProps {
   input: DecisionInput;
   analysis: BlindSpotAnalysis;
   reflections: Record<number, string>;
+  challengeReflection?: string;
 }
 
 export function DecisionDossier({
   input,
   analysis,
   reflections,
+  challengeReflection,
 }: DecisionDossierProps) {
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  const markdownContent = generateDossierMarkdown(input, analysis, reflections);
+  const markdownContent = generateDossierMarkdown(input, analysis, reflections, {
+    challengeReflection,
+  });
 
   const handleCopy = async () => {
     try {

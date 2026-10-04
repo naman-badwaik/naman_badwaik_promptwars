@@ -96,6 +96,21 @@ export async function POST(
       );
     }
 
+    const isTimeout =
+      errorMessage.toLowerCase().includes("timed out") ||
+      errorMessage.includes("504");
+
+    if (isTimeout) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "The analysis request timed out. Please try submitting again with slightly more concise context.",
+        },
+        { status: 504 }
+      );
+    }
+
     const isAuthError =
       errorMessage.includes("API_KEY_INVALID") ||
       errorMessage.includes("PERMISSION_DENIED") ||

@@ -37,6 +37,7 @@ describe("Gemini Pipeline Utilities", () => {
     expect(prompt).toContain(input.context);
     expect(prompt).toContain(input.constraints!);
     expect(prompt).toContain("Type 1: One-way door vs. Type 2: Two-way door");
+    expect(prompt).toContain("Challenge My Thinking");
   });
 
   it("handles prompt building gracefully when constraints are omitted", () => {
@@ -49,6 +50,7 @@ describe("Gemini Pipeline Utilities", () => {
     const prompt = buildAnalysisPrompt(input);
     expect(prompt).toContain(input.decision);
     expect(prompt).not.toContain("CONSTRAINTS, PRIORITIES & CONCERNS");
+    expect(prompt).toContain("Challenge My Thinking");
   });
 
   it("uses DEFAULT_GEMINI_MODEL when process.env.GEMINI_MODEL is not set", () => {

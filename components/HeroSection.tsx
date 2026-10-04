@@ -6,7 +6,9 @@ interface HeroSectionProps {
   onScrollToForm: () => void;
 }
 
-export function HeroSection({ onScrollToForm }: HeroSectionProps) {
+export const HeroSection = React.memo(function HeroSection({
+  onScrollToForm,
+}: HeroSectionProps) {
   return (
     <section
       aria-labelledby="hero-heading"
@@ -59,4 +61,4 @@ export function HeroSection({ onScrollToForm }: HeroSectionProps) {
       </div>
     </section>
   );
-}
+});

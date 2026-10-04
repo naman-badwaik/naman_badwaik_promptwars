@@ -9,7 +9,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { AnalysisDashboard } from "@/components/AnalysisDashboard";
 import { ErrorState } from "@/components/ErrorState";
 import { PresetScenario } from "@/lib/sampleData";
-import { AlertCircle, ArrowRight, RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 import {
   DecisionInput,
   DecisionInputSchema,
@@ -37,6 +37,8 @@ export default function HomePage() {
 
   // Sprint 3: Personal Reflections local state
   const [reflections, setReflections] = useState<Record<number, string>>({});
+  // Sprint 6 (Upgrade): Challenge My Thinking Pre-Mortem reflection state
+  const [challengeReflection, setChallengeReflection] = useState<string>("");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Accessible Escape key listener for reset confirmation dialog
@@ -108,6 +110,7 @@ export default function HomePage() {
     setApiError(null);
     setAnalysisResult(null);
     setReflections({});
+    setChallengeReflection("");
     setShowResetConfirm(false);
     scrollToForm();
   };
@@ -120,10 +123,10 @@ export default function HomePage() {
   };
 
   const handleRequestReset = () => {
-    // Check if user has unsaved reflection notes
-    const hasActiveReflections = Object.values(reflections).some(
-      (text) => text.trim().length > 0
-    );
+    // Check if user has unsaved reflection or pre-mortem notes
+    const hasActiveReflections =
+      Object.values(reflections).some((text) => text.trim().length > 0) ||
+      challengeReflection.trim().length > 0;
 
     if (hasActiveReflections) {
       setShowResetConfirm(true);
@@ -169,6 +172,7 @@ export default function HomePage() {
 
       setAnalysisResult(json.data);
       setReflections({}); // Reset reflections for newly generated dilemma
+      setChallengeReflection(""); // Reset pre-mortem reflection
       setIsLoading(false);
       scrollToResults();
     } catch {
@@ -237,7 +241,9 @@ export default function HomePage() {
             input={formValues}
             analysis={analysisResult}
             reflections={reflections}
+            challengeReflection={challengeReflection}
             onReflectionChange={handleReflectionChange}
+            onChallengeReflectionChange={setChallengeReflection}
             onAnalyzeAnother={handleRequestReset}
           />
         )}

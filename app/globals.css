@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #090d16;
+  --foreground: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+/* Accessible focus visible outlines */
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* ========================================================
+   KEYFRAME ANIMATIONS
+   ======================================================== */
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeInSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes orbitSlow {
+  from {
+    transform: rotate(0deg);
+    transform-origin: 550px 310px;
+  }
+  to {
+    transform: rotate(360deg);
+    transform-origin: 550px 310px;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.08;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.16;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes floatParticle1 {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes floatParticle2 {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 0.7;
+  }
+}
+
+/* ========================================================
+   HERO ENTRANCE SEQUENCE
+   ======================================================== */
+
+.hero-field-entrance {
+  animation: fadeIn 900ms ease-out 50ms forwards;
+  opacity: 0;
+}
+
+.hero-badge-entrance {
+  animation: fadeInSlideUp 400ms cubic-bezier(0.16, 1, 0.3, 1) 60ms forwards;
+  opacity: 0;
+}
+
+.hero-headline-entrance {
+  animation: fadeInSlideUp 480ms cubic-bezier(0.16, 1, 0.3, 1) 140ms forwards;
+  opacity: 0;
+}
+
+.hero-subhead-entrance {
+  animation: fadeInSlideUp 480ms cubic-bezier(0.16, 1, 0.3, 1) 220ms forwards;
+  opacity: 0;
+}
+
+.hero-cta-entrance {
+  animation: fadeInSlideUp 480ms cubic-bezier(0.16, 1, 0.3, 1) 300ms forwards;
+  opacity: 0;
+}
+
+/* ========================================================
+   THINKING FIELD MICRO-ANIMATIONS
+   ======================================================== */
+
+.thinking-orbit {
+  animation: orbitSlow 140s linear infinite;
+}
+
+.thinking-glow {
+  animation: pulseGlow 10s ease-in-out infinite;
+}
+
+.thinking-particle-1 {
+  animation: floatParticle1 6s ease-in-out infinite;
+}
+
+.thinking-particle-2 {
+  animation: floatParticle2 8s ease-in-out infinite;
+}
+
+.thinking-particle-3 {
+  animation: floatParticle1 7s ease-in-out infinite;
+}
+
+/* ========================================================
+   ANALYSIS RESULTS STAGGER SYSTEM
+   ======================================================== */
+
+.animate-reveal {
+  animation: fadeInSlideUp 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 110ms; }
+.stagger-3 { animation-delay: 170ms; }
+.stagger-4 { animation-delay: 230ms; }
+.stagger-5 { animation-delay: 290ms; }
+.stagger-6 { animation-delay: 350ms; }
+.stagger-7 { animation-delay: 410ms; }
+.stagger-8 { animation-delay: 470ms; }
+
+/* Micro-interaction lift utility */
+.card-hover-lift {
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 220ms cubic-bezier(0.2, 0, 0, 1),
+              border-color 220ms ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.card-hover-lift:active {
+  transform: scale(0.99);
+}
+
+/* ========================================================
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION OVERRIDES
+   ======================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

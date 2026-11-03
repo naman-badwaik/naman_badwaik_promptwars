@@ -1,5 +1,7 @@
 # BlindSpot AI — The Epistemic Decision Mirror
 
+ live demo link 
+https://naman-badwaik-promptwars.vercel.app/
 > **"See what you're not seeing before you commit."**  
 > *Built for PromptWars 2026 Hackathon | The Blind Spot Challenge*
 
